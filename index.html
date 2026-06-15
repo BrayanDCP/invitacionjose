@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>José Luis Peregrino Mateo · Primer Aniversario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&family=IM+Fell+English:ital@1&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --ink:      #1a1410;
+  --parchment:#f8f3ea;
+  --gold:     #c9a84c;
+  --gold-lt:  #e8d08a;
+  --ivory:    #fdf9f2;
+  --smoke:    #6b5e4e;
+  --card-bg:  rgba(253,249,242,0.97);
+  --serif:    'Playfair Display', Georgia, serif;
+  --fell:     'IM Fell English', Georgia, serif;
+  --body:     'Lato', system-ui, sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--body);
+  background: #0f0c08;
+  color: var(--ink);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(201,168,76,.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 50% 100%,  rgba(201,168,76,.07) 0%, transparent 60%),
+    linear-gradient(160deg, #1a1208 0%, #0f0c08 40%, #110e09 100%);
+}
+
+/* ── PARTICLES ─────────────────────────────────────── */
+#canvas {
+  position:fixed; inset:0; z-index:1;
+  pointer-events:none;
+}
+
+/* ═══════════════════════════════════════════════════
+   PANTALLA DE SOBRE (intro)
+═══════════════════════════════════════════════════ */
+#envelope-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  background: transparent;
+  transition: opacity .8s ease, visibility .8s ease;
+}
+
+#envelope-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Hint text above envelope */
+.env-hint {
+  font-family: var(--body);
+  font-size: .75rem;
+  letter-spacing: .4em;
+  text-transform: uppercase;
+  color: rgba(201,168,76,.6);
+  animation: pulse-hint 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-hint {
+  0%,100% { opacity:.4; }
+  50%      { opacity:1; }
+}
+
+/* The envelope container */
+.envelope-wrap {
+  position: relative;
+  cursor: pointer;
+  width: 340px;
+  height: 240px;
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,.7));
+  transition: transform .3s ease, filter .3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.envelope-wrap:hover {
+  transform: translateY(-6px) scale(1.02);
+  filter: drop-shadow(0 30px 80px rgba(0,0,0,.8)) drop-shadow(0 0 30px rgba(201,168,76,.2));
+}
+
+.envelope-wrap:active {
+  transform: scale(.98);
+}
+
+/* SVG envelope */
+.envelope-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Flap animation */
+.env-flap {
+  transform-origin: 170px 0px;
+  transition: transform .6s cubic-bezier(.4,0,.2,1);
+}
+
+.envelope-wrap.opening .env-flap {
+  transform: rotateX(180deg);
+}
+
+/* Letter peeking out */
+.env-letter {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 20px;
+  width: 220px;
+  height: 160px;
+  background: linear-gradient(180deg, #fdfaf3 0%, #f8f2e4 100%);
+  border: 1px solid rgba(201,168,76,.35);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .6s .15s cubic-bezier(.34,1.56,.64,1), opacity .4s .1s ease;
+  opacity: 0;
+  transform: translateX(-50%) translateY(0px);
+  z-index: -1;
+  box-shadow: 0 4px 24px rgba(0,0,0,.25);
+}
+
+.envelope-wrap.opening .env-letter {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-80px);
+}
+
+.env-letter-cross {
+  font-size: 1.8rem;
+  color: var(--gold);
+  opacity: .6;
+  font-family: serif;
+}
+
+/* Click hint below */
+.env-click-label {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: rgba(201,168,76,.75);
+  letter-spacing: .05em;
+}
+
+/* Wax seal */
+.wax-seal {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #d4a050, #8b5a1a);
+  border: 2px solid rgba(201,168,76,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: rgba(255,235,180,.8);
+  box-shadow: 0 2px 12px rgba(0,0,0,.4), inset 0 1px 3px rgba(255,200,100,.3);
+  transition: transform .4s ease, opacity .4s ease;
+  z-index: 10;
+}
+
+.envelope-wrap.opening .wax-seal {
+  transform: translateX(-50%) scale(0) rotate(30deg);
+  opacity: 0;
+  transition-delay: .05s;
+}
+
+/* ═══════════════════════════════════════════════════
+   CARTA (main invitation)
+═══════════════════════════════════════════════════ */
+.page {
+  position: relative; z-index: 10;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 60px 20px 100px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.2s ease, visibility 1.2s ease;
+}
+
+.page.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.carta {
+  width: 100%; max-width: 720px;
+  background: var(--card-bg);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(201,168,76,.25),
+    0 0 0 6px rgba(201,168,76,.06),
+    0 40px 120px rgba(0,0,0,.55),
+    0  4px  20px rgba(0,0,0,.3);
+  overflow: hidden;
+  position: relative;
+  transform: translateY(40px) scale(.97);
+  transition: transform 1.2s cubic-bezier(.34,1.2,.64,1);
+}
+
+.page.visible .carta {
+  transform: translateY(0) scale(1);
+}
+
+.carta::before, .carta::after {
+  content:'';
+  position:absolute; z-index:2;
+  width:80px; height:80px;
+  background-image:
+    linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold));
+  background-size: 1px 100%, 100% 1px;
+  background-repeat: no-repeat;
+  opacity:.5;
+}
+.carta::before { top:18px; left:18px; background-position: left top, left top; }
+.carta::after  { bottom:18px; right:18px; background-position: right bottom, right bottom; }
+
+/* ── HEADER ─────────────────────────────────────────── */
+.carta-header {
+  background: linear-gradient(135deg, #1a1208 0%, #2a1f0e 50%, #1a1208 100%);
+  padding: 56px 48px 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.carta-header::after {
+  content:'';
+  position:absolute; bottom:0; left:10%; right:10%; height:1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.header-eyebrow {
+  display:block;
+  font-family: var(--body);
+  font-size:.72rem;
+  font-weight:300;
+  letter-spacing:.45em;
+  text-transform:uppercase;
+  color: var(--gold);
+  margin-bottom:28px;
+  opacity:.9;
+}
+
+.cross-icon {
+  display:block;
+  font-size:2.8rem;
+  color: var(--gold);
+  margin-bottom:20px;
+  line-height:1;
+  text-shadow: 0 0 30px rgba(201,168,76,.4);
+  animation: glow-cross 4s ease-in-out infinite;
+}
+
+@keyframes glow-cross {
+  0%,100% { text-shadow:0 0 20px rgba(201,168,76,.3); }
+  50%      { text-shadow:0 0 50px rgba(201,168,76,.7), 0 0 100px rgba(201,168,76,.2); }
+}
+
+.header-name {
+  font-family: var(--serif);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight:600;
+  color: var(--ivory);
+  line-height:1.15;
+  letter-spacing:-.01em;
+}
+
+.header-name em {
+  display:block;
+  font-style:italic;
+  font-weight:400;
+  font-size:.72em;
+  color: var(--gold-lt);
+  margin-top:6px;
+  letter-spacing:.02em;
+}
+
+/* ── PHOTO ──────────────────────────────────────────── */
+.foto-band {
+  display:flex;
+  justify-content:center;
+  padding: 52px 48px 44px;
+  position:relative;
+}
+
+.foto-band::after {
+  content:'';
+  position:absolute; bottom:0; left:10%; right:10%; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,.3), transparent);
+}
+
+.foto-frame {
+  position:relative;
+  width:220px; height:220px;
+}
+
+.foto-frame::before {
+  content:'';
+  position:absolute; inset:-10px;
+  border-radius:50%;
+  background: conic-gradient(
+    rgba(201,168,76,0) 0deg, rgba(201,168,76,.6) 90deg,
+    rgba(201,168,76,0) 180deg, rgba(201,168,76,.4) 270deg,
+    rgba(201,168,76,0) 360deg
+  );
+  animation: spin-halo 12s linear infinite;
+}
+
+@keyframes spin-halo { to { transform: rotate(360deg); } }
+
+.foto-frame::after {
+  content:'';
+  position:absolute; inset:-3px;
+  border-radius:50%;
+  background: var(--ivory);
+  z-index:1;
+}
+
+.foto {
+  width:100%; height:100%;
+  object-fit:cover;
+  border-radius:50%;
+  position:relative; z-index:2;
+  display:block;
+}
+
+/* ── BODY ───────────────────────────────────────────── */
+.carta-body { padding: 0 48px; }
+
+/* DATES */
+.dates-row {
+  display:flex; justify-content:center;
+  padding: 40px 0;
+  border-bottom: 1px solid rgba(201,168,76,.15);
+}
+
+.date-block { flex:1; text-align:center; padding: 0 24px; }
+.date-block + .date-block { border-left:1px solid rgba(201,168,76,.2); }
+
+.date-label {
+  display:block; font-size:.65rem; letter-spacing:.35em;
+  text-transform:uppercase; color: var(--gold); margin-bottom:10px;
+}
+
+.date-icon-sm { font-size:1.4rem; display:block; margin-bottom:8px; color: var(--smoke); }
+
+.date-value { font-family: var(--serif); font-size:1.05rem; color: var(--ink); line-height:1.4; }
+
+/* QUOTE */
+.quote-block {
+  text-align:center; padding: 44px 24px;
+  border-bottom: 1px solid rgba(201,168,76,.15);
+}
+
+.quote-text {
+  font-family: var(--fell); font-style:italic;
+  font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+  line-height:1.85; color: var(--smoke);
+  max-width:520px; margin:0 auto;
+}
+
+.quote-text::before { content:'\201C'; color:var(--gold); font-size:1.4em; line-height:0; vertical-align:-.2em; }
+.quote-text::after  { content:'\201D'; color:var(--gold); font-size:1.4em; line-height:0; vertical-align:-.2em; }
+
+/* INVITE */
+.invite-block {
+  padding: 44px 24px;
+  border-bottom:1px solid rgba(201,168,76,.15);
+  text-align:center;
+}
+
+.section-label {
+  display:block; font-size:.65rem; letter-spacing:.4em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:20px;
+}
+
+.invite-block p {
+  font-size:1rem; line-height:2; color: #4a3d2e;
+  max-width:520px; margin:0 auto 16px;
+}
+.invite-block p:last-child { margin-bottom:0; }
+
+/* EVENT */
+.event-block { padding: 44px 24px; border-bottom:1px solid rgba(201,168,76,.15); }
+
+.event-inner {
+  border: 1px solid rgba(201,168,76,.3);
+  border-radius:3px; padding:32px;
+  text-align:center;
+  background: rgba(201,168,76,.03);
+  position:relative;
+}
+
+.event-inner::before, .event-inner::after {
+  content:'✦'; position:absolute; color:var(--gold); font-size:.7rem; opacity:.6;
+}
+.event-inner::before { top:10px; left:14px; }
+.event-inner::after  { bottom:10px; right:14px; }
+
+.event-title {
+  font-family: var(--serif); font-size:1.5rem;
+  font-weight:600; color:var(--ink); margin-bottom:24px;
+}
+
+.event-details { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+.event-detail { text-align:center; }
+
+.detail-label {
+  display:block; font-size:.62rem; letter-spacing:.35em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:8px;
+}
+
+.detail-value { font-family:var(--serif); font-size:1.1rem; color:var(--ink); line-height:1.4; }
+
+/* COUNTDOWN */
+.countdown-block { padding:44px 24px; border-bottom:1px solid rgba(201,168,76,.15); text-align:center; }
+
+.countdown-grid { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:28px; }
+
+.cd-cell {
+  width:100px; padding:18px 8px 14px;
+  border:1px solid rgba(201,168,76,.25); border-radius:3px;
+  background: linear-gradient(180deg, #fdfaf3 0%, #f8f2e4 100%);
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+}
+
+.cd-num {
+  display:block; font-family:var(--serif);
+  font-size:2.2rem; font-weight:700; color:var(--ink);
+  line-height:1; letter-spacing:-.02em;
+}
+
+.cd-label {
+  display:block; font-size:.6rem; letter-spacing:.3em;
+  text-transform:uppercase; color:var(--smoke); margin-top:8px;
+}
+
+/* CLOSING */
+.closing-block { padding:52px 24px 56px; text-align:center; }
+
+.closing-cross { display:block; font-size:2rem; color:var(--gold); margin-bottom:20px; opacity:.7; }
+
+.closing-text {
+  font-family:var(--fell); font-style:italic;
+  font-size:1.15rem; line-height:2; color:var(--smoke);
+  max-width:420px; margin:0 auto 24px;
+}
+
+.closing-name { font-family:var(--serif); font-size:1.8rem; font-weight:600; color:var(--ink); letter-spacing:.02em; }
+
+/* FOOTER */
+.carta-footer {
+  background: linear-gradient(135deg, #1a1208 0%, #2a1f0e 50%, #1a1208 100%);
+  padding:28px 48px; text-align:center; position:relative;
+}
+
+.carta-footer::before {
+  content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.footer-ornament { font-size:.8rem; letter-spacing:.6em; color:rgba(201,168,76,.5); text-transform:uppercase; }
+
+/* REVEAL */
+.reveal { opacity:0; transform:translateY(30px); transition: opacity .9s ease, transform .9s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ── MUSIC BUTTON ─────────────────────────────────── */
+#music-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 200;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a1f0e, #1a1208);
+  border: 1px solid rgba(201,168,76,.45);
+  color: var(--gold);
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5), 0 0 0 0 rgba(201,168,76,0);
+  transition: transform .2s ease, box-shadow .3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+#music-btn.show { opacity: 1; visibility: visible; transition: opacity .6s ease, transform .2s ease, box-shadow .3s ease; }
+#music-btn:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(0,0,0,.6), 0 0 20px rgba(201,168,76,.3); }
+#music-btn.playing { animation: pulse-music 2s ease-in-out infinite; }
+
+@keyframes pulse-music {
+  0%,100% { box-shadow: 0 4px 20px rgba(0,0,0,.5), 0 0 0 0 rgba(201,168,76,.4); }
+  50%      { box-shadow: 0 4px 20px rgba(0,0,0,.5), 0 0 0 10px rgba(201,168,76,0); }
+}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .carta-header { padding:40px 28px 36px; }
+  .carta-body   { padding:0 20px; }
+  .foto-band    { padding:40px 20px 36px; }
+  .foto-frame   { width:170px; height:170px; }
+  .dates-row    { flex-direction:column; gap:24px; }
+  .date-block + .date-block { border-left:none; border-top:1px solid rgba(201,168,76,.2); padding-top:24px; }
+  .cd-cell      { width:76px; padding:14px 4px 12px; }
+  .cd-num       { font-size:1.7rem; }
+  .event-details{ gap:24px; }
+  .carta-footer { padding:24px 20px; }
+  .envelope-wrap { width:280px; height:200px; }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .reveal { transition:none; }
+  #canvas { display:none; }
+  .foto-frame::before { animation:none; }
+  .cross-icon { animation:none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<!-- ═══ SOBRE DE INTRODUCCIÓN ═══ -->
+<div id="envelope-screen">
+  <span class="env-hint">Una carta para ti</span>
+
+  <div class="envelope-wrap" id="env-wrap" onclick="openEnvelope()" role="button" aria-label="Abrir carta">
+
+    <!-- Carta asomándose -->
+    <div class="env-letter">
+      <span class="env-letter-cross">✝</span>
+    </div>
+
+    <!-- Sello de cera -->
+    <div class="wax-seal">✝</div>
+
+    <!-- SVG del sobre -->
+    <svg class="envelope-svg" viewBox="0 0 340 240" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="env-shadow">
+          <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,.4)"/>
+        </filter>
+      </defs>
+
+      <!-- Cuerpo del sobre -->
+      <rect x="0" y="30" width="340" height="210" rx="4" fill="#f0e8d0" filter="url(#env-shadow)"/>
+
+      <!-- Líneas decorativas del sobre -->
+      <rect x="0" y="30" width="340" height="210" rx="4" fill="none" stroke="rgba(201,168,76,.4)" stroke-width="1"/>
+
+      <!-- Partes laterales (triángulos) -->
+      <polygon points="0,30 170,155 0,240" fill="#e8dfc0" stroke="rgba(201,168,76,.25)" stroke-width=".5"/>
+      <polygon points="340,30 170,155 340,240" fill="#e0d7b8" stroke="rgba(201,168,76,.25)" stroke-width=".5"/>
+
+      <!-- Parte inferior -->
+      <polygon points="0,240 170,155 340,240" fill="#ede5cc" stroke="rgba(201,168,76,.25)" stroke-width=".5"/>
+
+      <!-- Línea dorada decorativa interior -->
+      <line x1="20" y1="50" x2="320" y2="50" stroke="rgba(201,168,76,.2)" stroke-width=".5" stroke-dasharray="4,4"/>
+      <line x1="20" y1="220" x2="320" y2="220" stroke="rgba(201,168,76,.2)" stroke-width=".5" stroke-dasharray="4,4"/>
+
+      <!-- Tapas del sobre (flap) — se anima -->
+      <polygon class="env-flap" id="env-flap" points="0,30 340,30 170,155" fill="#e8dfc0" stroke="rgba(201,168,76,.35)" stroke-width=".8"/>
+
+      <!-- Ornamento central en el sobre -->
+      <text x="170" y="185" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="rgba(201,168,76,.5)">✝</text>
+    </svg>
+  </div>
+
+  <span class="env-click-label">Toca para abrir</span>
+</div>
+
+<!-- ═══ CARTA PRINCIPAL ═══ -->
+<div class="page" id="main-page">
+  <div class="carta" id="carta">
+
+    <!-- HEADER -->
+    <div class="carta-header reveal">
+      <span class="header-eyebrow">En Memoria</span>
+      <span class="cross-icon">✝</span>
+      <h1 class="header-name">
+        José Luis
+        <em>Peregrino Mateo</em>
+      </h1>
+    </div>
+
+    <!-- FOTO -->
+    <div class="foto-band reveal">
+      <div class="foto-frame">
+        <img class="foto" src="img/jose.png" alt="José Luis Peregrino Mateo"
+             onerror="this.style.display='none'; this.parentElement.style.background='radial-gradient(circle, #3a2a1a, #1a1208)'; this.parentElement.innerHTML += '<div style=\'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:3;font-size:3rem;color:rgba(201,168,76,.4);\'>✝</div>'">
+      </div>
+    </div>
+
+    <div class="carta-body">
+
+      <!-- FECHAS -->
+      <div class="dates-row reveal">
+        <div class="date-block">
+          <span class="date-icon-sm">🕊️</span>
+          <span class="date-label">Nacimiento</span>
+          <span class="date-value">21 de diciembre<br>de 2004</span>
+        </div>
+        <div class="date-block">
+          <span class="date-icon-sm">✝</span>
+          <span class="date-label">Partida</span>
+          <span class="date-value">29 de junio<br>de 2025</span>
+        </div>
+      </div>
+
+      <!-- CITA -->
+      <div class="quote-block reveal">
+        <p class="quote-text">
+          Quien permanece en nuestros corazones,
+          jamás se aleja verdaderamente.
+        </p>
+      </div>
+
+      <!-- INVITACIÓN -->
+      <div class="invite-block reveal">
+        <span class="section-label">Invitación</span>
+        <p>
+          Al cumplirse el primer año de su partida, invitamos a
+          familiares, amigos y seres queridos a acompañarnos en
+          una Santa Misa en su memoria.
+        </p>
+        <p>
+          Unidos en oración recordaremos su vida, su alegría y
+          el amor que dejó en cada persona que tuvo el privilegio
+          de conocerlo.
+        </p>
+      </div>
+
+      <!-- EVENTO -->
+      <div class="event-block reveal">
+        <div class="event-inner">
+          <p class="event-title">Santa Misa Conmemorativa</p>
+          <div class="event-details">
+            <div class="event-detail">
+              <span class="detail-label">Fecha</span>
+              <span class="detail-value">29 de junio de 2026</span>
+            </div>
+            <div class="event-detail">
+              <span class="detail-label">Lugar</span>
+              <span class="detail-value">Ampliación I – 14<br>Mz A – Lt 4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COUNTDOWN -->
+      <div class="countdown-block reveal">
+        <span class="section-label">Cuenta regresiva</span>
+        <div class="countdown-grid">
+          <div class="cd-cell"><span class="cd-num" id="cd-d">00</span><span class="cd-label">Días</span></div>
+          <div class="cd-cell"><span class="cd-num" id="cd-h">00</span><span class="cd-label">Horas</span></div>
+          <div class="cd-cell"><span class="cd-num" id="cd-m">00</span><span class="cd-label">Minutos</span></div>
+          <div class="cd-cell"><span class="cd-num" id="cd-s">00</span><span class="cd-label">Segundos</span></div>
+        </div>
+      </div>
+
+      <!-- CIERRE -->
+      <div class="closing-block reveal">
+        <span class="closing-cross">✝</span>
+        <p class="closing-text">
+          Siempre vivirás en nuestros recuerdos,<br>
+          en nuestras oraciones y en nuestros corazones.
+        </p>
+        <p class="closing-name">José Luis Peregrino Mateo</p>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="carta-footer">
+      <span class="footer-ornament">✦ &nbsp; 2025 &nbsp;·&nbsp; 2026 &nbsp; ✦</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- Botón de música -->
+<button id="music-btn" onclick="toggleMusic()" aria-label="Reproducir / pausar música">🎵</button>
+
+<!-- YouTube iframe oculto -->
+<iframe id="yt-frame"
+  src=""
+  allow="autoplay"
+  style="position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none;"
+></iframe>
+
+<script>
+/* ── PARTICLES ──────────────────────────────────────── */
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, pts = [];
+
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const GOLD  = [201,168,76];
+  const WHITE = [255,250,235];
+  function rand(a,b){ return Math.random()*(b-a)+a; }
+
+  function spawn(){
+    const col = Math.random()>.5 ? GOLD : WHITE;
+    return { x:rand(0,W), y:rand(0,H), r:rand(.4,1.8), vx:rand(-.15,.15), vy:rand(-.3,-.05),
+             a:0, maxA:rand(.12,.55), life:0, maxLife:rand(140,280), col };
+  }
+
+  for(let i=0;i<70;i++){ const p=spawn(); p.life=rand(0,p.maxLife); pts.push(p); }
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach((p,i)=>{
+      p.life++;
+      const t=p.life/p.maxLife;
+      p.a=t<.2?p.maxA*(t/.2):t>.8?p.maxA*((1-t)/.2):p.maxA;
+      p.x+=p.vx; p.y+=p.vy;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.col.join(',')},${p.a})`; ctx.fill();
+      if(p.life>=p.maxLife) pts[i]=spawn();
+    });
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ── SOBRE: ABRIR ───────────────────────────────────── */
+let envelopeOpened = false;
+
+function openEnvelope() {
+  if (envelopeOpened) return;
+  envelopeOpened = true;
+
+  const wrap   = document.getElementById('env-wrap');
+  const screen = document.getElementById('envelope-screen');
+  const page   = document.getElementById('main-page');
+
+  // 1. Animación del sobre
+  wrap.classList.add('opening');
+
+  // 2. Iniciar música al interactuar
+  startMusic();
+
+  // 3. Tras la animación del sobre, revelar carta
+  setTimeout(() => {
+    screen.classList.add('hidden');
+    page.classList.add('visible');
+    document.getElementById('music-btn').classList.add('show');
+
+    // Activar reveals
+    setTimeout(activateReveals, 400);
+  }, 900);
+}
+
+/* ── REVEAL ON SCROLL ───────────────────────────────── */
+function activateReveals() {
+  const els = document.querySelectorAll('.reveal');
+  const io  = new IntersectionObserver(
+    entries => entries.forEach(e => {
+      if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
+    }),
+    { threshold: .1 }
+  );
+  els.forEach(el => io.observe(el));
+  setTimeout(()=>{ els.forEach(el=>{ const r=el.getBoundingClientRect(); if(r.top<window.innerHeight) el.classList.add('visible'); }); }, 100);
+}
+
+/* ── COUNTDOWN ──────────────────────────────────────── */
+(function(){
+  const TARGET = new Date('2026-06-29T00:00:00-05:00').getTime();
+  const pad = n => String(n).padStart(2,'0');
+  const dEl = document.getElementById('cd-d');
+  const hEl = document.getElementById('cd-h');
+  const mEl = document.getElementById('cd-m');
+  const sEl = document.getElementById('cd-s');
+
+  function tick(){
+    const diff = TARGET - Date.now();
+    if(diff<=0){ dEl.textContent=hEl.textContent=mEl.textContent=sEl.textContent='00'; return; }
+    dEl.textContent = pad(Math.floor(diff/86400000));
+    hEl.textContent = pad(Math.floor(diff%86400000/3600000));
+    mEl.textContent = pad(Math.floor(diff%3600000/60000));
+    sEl.textContent = pad(Math.floor(diff%60000/1000));
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* ── MÚSICA ─────────────────────────────────────────── */
+const YT_ID  = 'tmqkRrJPoDk';
+let musicOn  = false;
+let ytReady  = false;
+
+function startMusic() {
+  const frame = document.getElementById('yt-frame');
+  frame.src = `https://www.youtube.com/embed/${YT_ID}?autoplay=1&loop=1&playlist=${YT_ID}&controls=0&enablejsapi=1`;
+  musicOn = true;
+  ytReady = true;
+  const btn = document.getElementById('music-btn');
+  btn.textContent = '🎵';
+  btn.classList.add('playing');
+}
+
+function toggleMusic() {
+  const frame = document.getElementById('yt-frame');
+  const btn   = document.getElementById('music-btn');
+
+  if (!ytReady) { startMusic(); return; }
+
+  if (musicOn) {
+    frame.src = '';
+    musicOn = false;
+    ytReady = false;
+    btn.textContent = '🔇';
+    btn.classList.remove('playing');
+  } else {
+    startMusic();
+  }
+}
+</script>
+</body>
+</html>
